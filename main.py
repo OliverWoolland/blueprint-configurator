@@ -63,6 +63,10 @@ class BlueprintConfigurator(App[None]):
                 for triple in triples_maching_label:
                     f.write(f"{triple[0]} {triple[1]} {triple[2]} .\n")
 
+        # write out config file to configure preselection of items
+        with open(f"{current_tab}.conf", "w") as f:
+            for item in selected_items:
+                f.write(f"{item}\n")
         # ----------------------------------------------------------------------
         # Switch to the new tab, and update the selection list
 
@@ -89,6 +93,13 @@ class BlueprintConfigurator(App[None]):
         self.graph = rdflib.Graph()
         self.graph.parse(f"_{filename}.ttl", format="ttl")
 
+        # Read config file (if existing)
+        preselected_items = []
+        try:
+            with open(filename + ".conf", "r") as f:
+                preselected_items = f.read().splitlines()
+        except FileNotFoundError:
+            pass
         # Fetch all items
         selections = []
         for s, p, o in self.graph.triples((None, None, None)):
