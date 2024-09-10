@@ -103,10 +103,25 @@ class BlueprintConfigurator(App[None]):
         # Fetch all items
         selections = []
         for s, p, o in self.graph.triples((None, None, None)):
-            label = rdflib.term.URIRef('http://schema.example.org/blueprint-ui-config-initializer/label')
+            label = None
+            if filename == "classes":
+                predicate_filter = "label"
+                display = str(o)
+                value = str(s)
+            if filename == "links":
+                predicate_filter = "link"
+                display = f'{s} -> {o}'
+                value = str(s)
+            if filename == "details":
+                predicate_filter = "label"
+                display = f'{s} -> {o}'
+                value = str(s)
 
-            if p == label:
-                selection = Selection(str(o), str(s), True)
+            base_uri = 'http://schema.example.org/blueprint-ui-config-initializer/'
+            predicate = rdflib.term.URIRef(f'{base_uri}{predicate_filter}')
+            if p == predicate:
+                preselected = str(s) in preselected_items
+                selection = Selection(display, value, preselected)
                 selections.append(selection)
                 
         return selections
