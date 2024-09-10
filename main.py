@@ -36,7 +36,8 @@ class BlueprintConfigurator(App[None]):
         with Horizontal():
             yield SelectionList[str](*items,)
             yield Pretty([])
-            yield Log()
+            #yield Log()
+            #log = self.query_one(Log)
 
         yield Footer()
 
@@ -45,14 +46,12 @@ class BlueprintConfigurator(App[None]):
         self.query_one(Pretty).border_title = "Selected items"
 
     def action_show_tab(self, tab: str) -> None:
-        log = self.query_one(Log)
         
         # ----------------------------------------------------------------------
         # Write out config as user has specified
 
         # get selected items
         selected_items = self.query_one(SelectionList).selected
-        log.write_line(f"Selected items: {selected_items}")
 
         # get the current tab
         current_tab = self.get_child_by_type(TabbedContent).active
@@ -81,8 +80,6 @@ class BlueprintConfigurator(App[None]):
     @on(Mount)
     @on(SelectionList.SelectedChanged)
     def update_selected_view(self) -> None:
-        self.log("Updating selected view")
-        self.log(self.query_one(SelectionList).selected)
         self.query_one(Pretty).update(self.query_one(SelectionList).selected)
 
     # --------------------------------------------------------------------------
