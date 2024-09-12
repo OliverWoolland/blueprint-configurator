@@ -3,8 +3,8 @@ from textual.app import App, ComposeResult
 from textual.containers import Horizontal
 from textual.widgets import Footer, Header, SelectionList, Static, Log
 from textual.widgets.selection_list import Selection
-from textual import log
 
+import argparse
 import rdflib
 
 # ------------------------------------------------------------------------------
@@ -126,5 +126,21 @@ class BlueprintConfigurator(App[None]):
         return selections
 
 if __name__ == "__main__":
-    app = BlueprintConfigurator()
+    # --------------------------------------------------------------------------
+    # Parse command line arguments
+
+    # Create the parser
+    parser = argparse.ArgumentParser(description='Blueprint Configurator')
+
+    # Add the arguments
+    arg_choices = ['classes', 'links', 'details']
+    parser.add_argument('--item-type', choices=arg_choices, help='The type of items to fetch', required=True)
+
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # --------------------------------------------------------------------------
+    # Launch the Blueprint Configurator
+    
+    app = BlueprintConfigurator(item_type=args.item_type)
     app.run()
