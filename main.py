@@ -94,37 +94,58 @@ class BlueprintConfigurator(App[None]):
         self.graph = rdflib.Graph()
         self.graph.parse(f"_{filename}.ttl", format="ttl")
 
+        # ----------------------------------------------------------------------
         # Read config file (if existing)
+        
         preselected_items = []
         try:
             with open(filename + ".conf", "r") as f:
                 preselected_items = f.read().splitlines()
         except FileNotFoundError:
             pass
-        # Fetch all items
-        selections = []
-        for s, p, o in self.graph.triples((None, None, None)):
-            label = None
-            if filename == "classes":
-                predicate_filter = "label"
-                display = str(o)
-                value = str(s)
-            if filename == "links":
-                predicate_filter = "link"
-                display = f'{s} -> {o}'
-                value = str(s)
-            if filename == "details":
-                predicate_filter = "label"
-                display = f'{s} -> {o}'
-                value = str(s)
 
-            base_uri = 'http://schema.example.org/blueprint-ui-config-initializer/'
-            predicate = rdflib.term.URIRef(f'{base_uri}{predicate_filter}')
-            if p == predicate:
-                preselected = str(s) in preselected_items
-                selection = Selection(display, value, preselected)
-                selections.append(selection)
-                
+        # ----------------------------------------------------------------------
+        # Configure the display and query based on the filename
+        
+        selections = []
+
+        if filename == "classes":
+            query = """PREFIX : <http://schema.example.org/blueprint-ui-config-initializer/>
+SELECT ?s ?p ?o WHERE { ?s :label ?o . }"""
+        if filename == "links":
+            query = """PREFIX : <http://schema.example.org/blueprint-ui-config-initializer/>
+SELECT ?path ?label ?to
+WHERE {
+    ?o :link ?link .
+    ?link :label ?label ;
+          :path ?path ;
+          :to ?to .
+}"""            
+        if filename == "details":
+            query = """PREFIX : <http://schema.example.org/blueprint-ui-config-initializer/>
+SELECT ?o ?path ?label
+WHERE {
+    ?o :detail ?link .
+    ?link :label ?label ;
+          :path ?path .
+}"""            
+
+        # ----------------------------------------------------------------------
+        # Fetch the items
+        
+        result = self.graph.query(query)
+        for s, p, o in result:
+            # if any of s p or o are None then cast to empty string
+            s = s if s else ""
+            p = p if p else ""
+            o = o if o else ""
+            
+            display = f'{s : <150} {p : ^100} {o : >30}'
+
+            preselected = str(s) in preselected_items
+            selection = Selection(display, str(s), preselected)
+            selections.append(selection)
+                        
         return selections
 
 if __name__ == "__main__":
