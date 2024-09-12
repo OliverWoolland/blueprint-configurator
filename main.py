@@ -18,32 +18,24 @@ class BlueprintConfigurator(App[None]):
 
     graph = None
 
+    def __init__(self, item_type: str) -> None:
+        self.item_type = item_type
+        super().__init__()
+
+    # --------------------------------------------------------------------------
+    # Render the TUI
+
     def compose(self) -> ComposeResult:
         yield Header()
-
-        with TabbedContent(initial="classes"):
-            with TabPane("Classes", id="classes"):
-                yield Static("## Classes")
-            with TabPane("Links", id="links"):
-                yield Static("## Links")
-            with TabPane("Details", id="details"):
-                yield Static("## Details")
-
-        items = self.fetch_items("classes")
         with Horizontal():
-            yield SelectionList[str](*items,)
-            yield Pretty([])
-            #yield Log()
-            #log = self.query_one(Log)
-
+            yield SelectionList[str](*self.fetch_items(self.item_type))
         yield Footer()
 
     # --------------------------------------------------------------------------
     # Events
     
     def on_mount(self) -> None:
-        self.query_one(SelectionList).border_title = "Items found"
-        self.query_one(Pretty).border_title = "Selected items"
+        self.query_one(SelectionList).border_title = "Items retrieved from the database"
 
     # --------------------------------------------------------------------------
     # Actions
