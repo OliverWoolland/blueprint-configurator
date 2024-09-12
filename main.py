@@ -45,7 +45,7 @@ class BlueprintConfigurator(App[None]):
         # ----------------------------------------------------------------------
         # Write out config as user has specified
 
-        # get selected items
+        # Get selected items
         selected_items = self.query_one(SelectionList).selected
 
         # get the current tab
@@ -75,11 +75,17 @@ class BlueprintConfigurator(App[None]):
         items_list.clear_options()
         items_list.add_options(items)
 
+        # ----------------------------------------------------------------------
+        # Write out config file to configure preselection of items
         
-    @on(Mount)
-    @on(SelectionList.SelectedChanged)
-    def update_selected_view(self) -> None:
-        self.query_one(Pretty).update(self.query_one(SelectionList).selected)
+        with open(f"{self.item_type}.conf", "w") as f:
+            for item in selected_items:
+                f.write(f"{item}\n")
+
+        # ----------------------------------------------------------------------
+        # Quit the app        
+                
+        self.exit()
 
     # --------------------------------------------------------------------------
     # Methods for fetching items from the ttl files
