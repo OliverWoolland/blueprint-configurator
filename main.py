@@ -40,11 +40,16 @@ class BlueprintConfigurator(App[None]):
     def on_mount(self) -> None:
         self.query_one(SelectionList).border_title = "Items retrieved from the database"
 
+        log = self.query_one(Log)
+        log.write_line("Welcome to the Blueprint Configurator!")
+
     # --------------------------------------------------------------------------
     # Actions
         
     def action_quit(self) -> None:
 
+        log = self.query_one(Log)
+        
         # ----------------------------------------------------------------------
         # Write out config as user has specified
 
@@ -60,10 +65,16 @@ class BlueprintConfigurator(App[None]):
         elif self.item_type == "details":
             query = queries.get_detail_construct(selected_items)
 
+        log.write_line(query)
+
         # Execute the query and write out the result
         result = self.graph.query(query)
+
+        # Make graph from result and serialize it to a file
         result.serialize(f"{self.item_type}.ttl", format="turtle")
 
+        serial = result.serialize(format="turtle").decode("utf-8")
+        log.write_line(serial)
         # ----------------------------------------------------------------------
         # Write out config file to configure preselection of items
         
@@ -73,8 +84,8 @@ class BlueprintConfigurator(App[None]):
 
         # ----------------------------------------------------------------------
         # Quit the app        
-                
-        self.exit()
+              
+        #self.exit()
 
     # --------------------------------------------------------------------------
     # Methods for fetching items from the ttl files
@@ -112,8 +123,8 @@ class BlueprintConfigurator(App[None]):
             
             display = f'{s : <150} {p : ^100} {o : >30}'
 
-            preselected = str(s) in preselected_items
-            selection = Selection(display, str(s), preselected)
+            preselected = str(o) in preselected_items
+            selection = Selection(display, str(o), preselected)
             selections.append(selection)
                         
         return selections
@@ -127,7 +138,7 @@ if __name__ == "__main__":
 
     # Add the arguments
     arg_choices = ['classes', 'links', 'details']
-    parser.add_argument('--item-type', choices=arg_choices, help='The type of items to fetch', required=True)
+    parser.add_argument('--item-type', choices=arg_choices, help='The type of items to fetch', requried=True)
 
     # Parse the arguments
     args = parser.parse_args()

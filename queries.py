@@ -23,7 +23,7 @@ def get_construct_query(item_type, selected_items):
     return query
 
 def get_class_construct(selected_items):
-    selected_items_str = " ".join([f'<{item}>' for item in selected_items])
+    selected_items_str = " ".join([f'"{item}"' for item in selected_items])
 
     query = f"""{prefix}    
 CONSTRUCT {{
@@ -121,7 +121,7 @@ WHERE {
 
 def get_link_display():
     query = """PREFIX : <http://schema.example.org/blueprint-ui-config-initializer/>
-SELECT ?path ?label ?to
+SELECT ?label ?to ?path
 WHERE {
     ?o :link ?link .
     ?link :label ?label ;
@@ -130,9 +130,9 @@ WHERE {
 }"""
     return query
 
-def get_detail_construct():
+def get_detail_display():
     query = """PREFIX : <http://schema.example.org/blueprint-ui-config-initializer/>
-SELECT ?o ?path ?label
+SELECT ?path ?o ?label
 WHERE {
     ?o :detail ?link .
     ?link :label ?label ;
