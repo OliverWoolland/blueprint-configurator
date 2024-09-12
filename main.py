@@ -7,6 +7,8 @@ from textual.widgets.selection_list import Selection
 import argparse
 import rdflib
 
+import queries
+
 # ------------------------------------------------------------------------------
 # Textual App (the TUI)
 
@@ -29,6 +31,7 @@ class BlueprintConfigurator(App[None]):
         yield Header()
         with Horizontal():
             yield SelectionList[str](*self.fetch_items(self.item_type))
+            yield Log()
         yield Footer()
 
     # --------------------------------------------------------------------------
@@ -45,42 +48,28 @@ class BlueprintConfigurator(App[None]):
         # ----------------------------------------------------------------------
         # Write out config as user has specified
 
-        # Get selected items
+        # Get selected items and produce a space seperated string with them
         selected_items = self.query_one(SelectionList).selected
 
-        # get the current tab
-        current_tab = self.get_child_by_type(TabbedContent).active
+        # Fetch the query based on the item type
+        query = ""
+        if self.item_type == "classes":
+            query = queries.get_class_construct(selected_items)
+        elif self.item_type == "links":
+            query = queries.get_link_construct(selected_items)
+        elif self.item_type == "details":
+            query = queries.get_detail_construct(selected_items)
 
-        # write out the selected items (i.e. items in graph which a :label which is in selected_items)
-        with open(f"{current_tab}.ttl", "w") as f:
-            for item in selected_items:
-                triples_maching_label = self.graph.triples((rdflib.term.URIRef(item), None, None))
-                for triple in triples_maching_label:
-                    f.write(f"{triple[0]} {triple[1]} {triple[2]} .\n")
-
-        # write out config file to configure preselection of items
-        with open(f"{current_tab}.conf", "w") as f:
-            for item in selected_items:
-                f.write(f"{item}\n")
-        # ----------------------------------------------------------------------
-        # Switch to the new tab, and update the selection list
-
-        # Switch to the new tab
-        self.get_child_by_type(TabbedContent).active = tab
-
-        # Update SelectionList
-        items = self.fetch_items(tab)
-
-        items_list = self.query_one(SelectionList)
-        items_list.clear_options()
-        items_list.add_options(items)
+        # Execute the query and write out the result
+        result = self.graph.query(query)
+        result.serialize(f"{self.item_type}.ttl", format="turtle")
 
         # ----------------------------------------------------------------------
         # Write out config file to configure preselection of items
         
         with open(f"{self.item_type}.conf", "w") as f:
-            for item in selected_items:
-                f.write(f"{item}\n")
+           for item in selected_items:
+               f.write(f"{item}\n")
 
         # ----------------------------------------------------------------------
         # Quit the app        
@@ -105,35 +94,16 @@ class BlueprintConfigurator(App[None]):
             pass
 
         # ----------------------------------------------------------------------
-        # Configure the display and query based on the filename
+        # Configure the display and query based on the item type
         
-        selections = []
-
-        if filename == "classes":
-            query = """PREFIX : <http://schema.example.org/blueprint-ui-config-initializer/>
-SELECT ?s ?p ?o WHERE { ?s :label ?o . }"""
-        if filename == "links":
-            query = """PREFIX : <http://schema.example.org/blueprint-ui-config-initializer/>
-SELECT ?path ?label ?to
-WHERE {
-    ?o :link ?link .
-    ?link :label ?label ;
-          :path ?path ;
-          :to ?to .
-}"""            
-        if filename == "details":
-            query = """PREFIX : <http://schema.example.org/blueprint-ui-config-initializer/>
-SELECT ?o ?path ?label
-WHERE {
-    ?o :detail ?link .
-    ?link :label ?label ;
-          :path ?path .
-}"""            
+        query = queries.get_display_query(self.item_type)
 
         # ----------------------------------------------------------------------
         # Fetch the items
         
         result = self.graph.query(query)
+
+        selections = []
         for s, p, o in result:
             # if any of s p or o are None then cast to empty string
             s = s if s else ""
