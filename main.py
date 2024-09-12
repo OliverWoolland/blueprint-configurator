@@ -13,9 +13,7 @@ import rdflib
 class BlueprintConfigurator(App[None]):
     CSS_PATH = "layout.tcss"
     BINDINGS = [
-        ("c", "show_tab('classes')", "Show classes tab"),
-        ("l", "show_tab('links')", "Show links tab"),
-        ("d", "show_tab('details')", "Show details tab"),
+        ("q", "quit", "Quit"),
     ]
 
     graph = None
@@ -40,12 +38,18 @@ class BlueprintConfigurator(App[None]):
 
         yield Footer()
 
+    # --------------------------------------------------------------------------
+    # Events
+    
     def on_mount(self) -> None:
         self.query_one(SelectionList).border_title = "Items found"
         self.query_one(Pretty).border_title = "Selected items"
 
-    def action_show_tab(self, tab: str) -> None:
+    # --------------------------------------------------------------------------
+    # Actions
         
+    def action_quit(self) -> None:
+
         # ----------------------------------------------------------------------
         # Write out config as user has specified
 
