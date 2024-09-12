@@ -85,7 +85,7 @@ class BlueprintConfigurator(App[None]):
         # ----------------------------------------------------------------------
         # Quit the app        
               
-        #self.exit()
+        self.exit()
 
     # --------------------------------------------------------------------------
     # Methods for fetching items from the ttl files
@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
     # Add the arguments
     arg_choices = ['classes', 'links', 'details']
-    parser.add_argument('--item-type', choices=arg_choices, help='The type of items to fetch', requried=True)
+    parser.add_argument('--item-type', choices=arg_choices, help='The type of items to fetch')
 
     # Parse the arguments
     args = parser.parse_args()
