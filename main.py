@@ -1,8 +1,7 @@
 from textual import on
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal
-from textual.events import Mount
-from textual.widgets import Footer, Header, Pretty, SelectionList, TabPane, TabbedContent, Static, Log
+from textual.widgets import Footer, Header, SelectionList, Static, Log
 from textual.widgets.selection_list import Selection
 from textual import log
 
