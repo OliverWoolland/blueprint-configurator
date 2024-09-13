@@ -127,7 +127,7 @@ class BlueprintConfigurator(App[None]):
             p = p if p else ""
             o = o if o else ""
             
-            display = f'{s : <150} {p : ^100} {o : >30}'
+            display = f'{s}  ||  {p}  ||  {o}'
 
             preselected = str(o) in preselected_items
             selection = Selection(display, str(o), preselected)
