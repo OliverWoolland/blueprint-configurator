@@ -20,8 +20,9 @@ class BlueprintConfigurator(App[None]):
 
     graph = None
 
-    def __init__(self, item_type: str) -> None:
+    def __init__(self, item_type: str, debug_mode: bool = False) -> None:
         self.item_type = item_type
+        self.debug_mode = debug_mode
         super().__init__()
 
     # --------------------------------------------------------------------------
@@ -31,7 +32,8 @@ class BlueprintConfigurator(App[None]):
         yield Header()
         with Horizontal():
             yield SelectionList[str](*self.fetch_items(self.item_type))
-            yield Log()
+            if self.debug_mode:
+                yield Log()
         yield Footer()
 
     # --------------------------------------------------------------------------
@@ -40,15 +42,17 @@ class BlueprintConfigurator(App[None]):
     def on_mount(self) -> None:
         self.query_one(SelectionList).border_title = "Items retrieved from the database"
 
-        log = self.query_one(Log)
-        log.write_line("Welcome to the Blueprint Configurator!")
+        if self.debug_mode:
+            log = self.query_one(Log)
+            log.write_line("Welcome to the Blueprint Configurator!")
 
     # --------------------------------------------------------------------------
     # Actions
         
     def action_quit(self) -> None:
 
-        log = self.query_one(Log)
+        if self.debug_mode:
+            log = self.query_one(Log)
         
         # ----------------------------------------------------------------------
         # Write out config as user has specified
@@ -65,7 +69,8 @@ class BlueprintConfigurator(App[None]):
         elif self.item_type == "details":
             query = queries.get_detail_construct(selected_items)
 
-        log.write_line(query)
+        if self.debug_mode:
+            log.write_line(query)
 
         # Execute the query and write out the result
         result = self.graph.query(query)
@@ -74,7 +79,8 @@ class BlueprintConfigurator(App[None]):
         result.serialize(f"{self.item_type}.ttl", format="turtle")
 
         serial = result.serialize(format="turtle").decode("utf-8")
-        log.write_line(serial)
+        if self.debug_mode:
+            log.write_line(serial)
         # ----------------------------------------------------------------------
         # Write out config file to configure preselection of items
         
@@ -139,12 +145,14 @@ if __name__ == "__main__":
     # Add the arguments
     arg_choices = ['classes', 'links', 'details']
     parser.add_argument('--item-type', choices=arg_choices, help='The type of items to fetch')
+    parser.add_argument('--debug', action='store_true', help='Debug mode')
 
     # Parse the arguments
     args = parser.parse_args()
 
     # --------------------------------------------------------------------------
     # Launch the Blueprint Configurator
-    
-    app = BlueprintConfigurator(item_type=args.item_type)
+
+    print(f"Launching Blueprint Configurator for {args.item_type} items, debug mode: {args.debug}")
+    app = BlueprintConfigurator(item_type=args.item_type, debug_mode=args.debug)
     app.run()
